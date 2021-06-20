@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "file_converter": {
+      "commandName": "Project",
+      "commandLineArgs": "note.txt test.json note.csv q.xml"
+    }
+  }
+}
