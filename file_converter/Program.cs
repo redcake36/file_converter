@@ -22,12 +22,7 @@ namespace file_converter
             XmlElement xRoot = xDoc.DocumentElement;
         }
     }
-    class P
-    {
-        public string name { get; set; }
-        public string role { get; set; }
-        public string last_login { get; set; }
-    }
+    
     class Program
     {
         public static Data csv_parser(string file_name)
@@ -104,9 +99,118 @@ namespace file_converter
                         a.Add(subs[1]);
                         i++;
                     }
+                    v.Add(a);
                 }
-                v.Add(a);
+                
             }
+            d.fields = f.Distinct().ToList();
+            d.values = v;
+            return (d);
+        }
+        public static string jsonTakeWords(string[] lines,int i,ref int j)
+        {
+            string s = "";
+            bool flag = true;
+            while (flag)
+            {
+                if (lines[i][j] == '"')
+                {
+                    j++;
+                    while (lines[i][j] != '"')
+                    {
+                        s+=lines[i][j];
+                        j++;
+                    }
+                    j++;
+                    flag = false;
+                }
+                else
+                    j++;
+            }
+            return s;
+        }
+        public static string xmlTakeWords(string[] lines, int i, ref int j,string c)
+        {
+            string s = "";
+            bool flag = true;
+            if (j == 0)
+            {
+                j = lines[i].IndexOf("name");
+            }
+            
+            while (flag)
+            {
+                if (lines[i][j] == c[0])
+                {
+                    j++;
+                    while (lines[i][j] != c[1])
+                    {
+                        s += lines[i][j];
+                        j++;
+                    }
+                    flag = false;
+                }
+                else
+                    j++;
+            }
+            return s;
+        }
+        public static Data json_parser(string file_name)
+        {
+            Data d = new Data();
+            string[] lines = System.IO.File.ReadAllLines(file_name);
+            List<string> f = new List<string>();
+            List<List<string>> v = new List<List<string>>();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                List<string> a = new List<string>();
+                if (lines[i].Contains('{'))
+                {
+                    i++;
+                    while (!lines[i].Contains('}'))
+                    {
+                        int j = 0;
+                        f.Add(jsonTakeWords(lines, i, ref j));
+                        a.Add(jsonTakeWords(lines, i, ref j));
+
+                        i++;
+                    }
+                    v.Add(a);
+                }
+                
+            }
+
+            d.fields = f.Distinct().ToList();
+            d.values = v;
+            return (d);
+        }
+        public static Data xml_parser(string file_name)
+        {
+            Data d = new Data();
+            string[] lines = System.IO.File.ReadAllLines(file_name);
+            List<string> f = new List<string>();
+            List<List<string>> v = new List<List<string>>();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                List<string> a = new List<string>();
+                if (lines[i].Contains("Object"))
+                {
+                    i++;
+                    while (!lines[i].Contains("/Object"))
+                    {
+                        int j = 0;
+                        f.Add(xmlTakeWords(lines, i, ref j,"\"\""));
+                        a.Add(xmlTakeWords(lines, i, ref j,"><"));
+
+                        i++;
+                    }
+                    v.Add(a);
+                }
+
+            }
+
             d.fields = f.Distinct().ToList();
             d.values = v;
             return (d);
@@ -248,8 +352,10 @@ namespace file_converter
             string[] arg_o = args[1].Split(".");
             if (frmt.Contains(arg_z[arg_z.Length - 1]) & frmt.Contains(arg_o[arg_o.Length - 1]))
             {
-                mydata = txt_parser(args[0]);
-                json_exporter(mydata, args[1]);
+                abstractFile ftype = new file_txt(args[0]);
+                //mydata = ftype.parser();
+                mydata = xml_parser(args[3]);
+                txt_exporter(mydata, args[0]);
 
                 foreach (List<string> v in mydata.values)
                 {
