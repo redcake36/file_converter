@@ -59,14 +59,14 @@ namespace file_converter
                 }
 
                 outFtype = BuildFileWrapper(args[1]);
-                try
-                {
-                    outFtype.Export(myData);
-                }
-                catch
-                {
-                    Console.WriteLine("Can`t export...\nMaybe file {0} has bad structure", args[0]);
-                }
+                //try
+                //{
+                outFtype.Export(myData);
+                //}
+                //catch
+                //{
+                //    Console.WriteLine("Can`t export...\nMaybe file {0} has bad structure", args[0]);
+                //}
 
                 Console.WriteLine("Done!");
             }

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace file_converter
 {
-
     public class fileXml : IFileWrapper
     {
         static string xmlTakeWords(string[] lines, int i, ref int j, string c)
@@ -68,35 +68,26 @@ namespace file_converter
         }
         public void Export(Data input)
         {
-            XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(this.filePath);
-            XmlElement xRoot = xDoc.DocumentElement;
-
+            XDocument xDoc = new XDocument();
+            XElement root = new XElement("List");
 
             for (int i = 0; i < input.Content.Count; i++)
             {
-                XmlElement ObjectElem = xDoc.CreateElement("Object");
+                XElement ObjectElem = new XElement("Object");
                 for (int j = 0; j < input.FieldNames.Count; j++)
                 {
-                    XmlElement PropertyElem = xDoc.CreateElement("Property");
-                    XmlAttribute typeAttr = xDoc.CreateAttribute("type");
-                    XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+                    XElement PropertyElem = new XElement("Property", input.Content[i][j]);
+                    XAttribute typeAttr = new XAttribute("type","string");
+                    XAttribute nameAttr = new XAttribute("name", input.FieldNames[j]);
 
-                    XmlText PropertyText = xDoc.CreateTextNode(input.Content[i][j]);
-                    XmlText typeText = xDoc.CreateTextNode("string");
-                    XmlText nameText = xDoc.CreateTextNode(input.FieldNames[j]);
-
-                    PropertyElem.AppendChild(PropertyText);
-                    typeAttr.AppendChild(typeText);
-                    nameAttr.AppendChild(nameText);
-
-                    PropertyElem.Attributes.Append(typeAttr);
-                    PropertyElem.Attributes.Append(nameAttr);
-                    ObjectElem.AppendChild(PropertyElem);
+                    PropertyElem.Add(typeAttr);
+                    PropertyElem.Add(nameAttr);
+                    ObjectElem.Add(PropertyElem);
                 }
-                xRoot.AppendChild(ObjectElem);
+                root.Add(ObjectElem);
             }
 
+            xDoc.Add(root);
             xDoc.Save(filePath);
         }
     }
