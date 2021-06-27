@@ -2,94 +2,73 @@
 using System.Linq;
 
 namespace file_converter
-{   
+{
     class Program
     {
+        private static string[] SUPPORTED_FORMATS = { "txt", "csv", "json", "xml" };
+        private static string GetFileExtension(string filePath)
+        {
+            string[] s = filePath.Split("."); 
+            return (s[s.Length-1]);
+        }
+        private static IFileWrapper BuildFileWrapper(string filePath)
+        {
+            string ext = GetFileExtension(filePath);
+            switch (ext)
+            {
+                case "txt":
+                    return new fileTxt(filePath);                   
+                case "csv":
+                    return new fileCsv(filePath);                   
+                case "json":
+                    return new fileJson(filePath);                   
+                case "xml":
+                    return new fileXml(filePath);
+            }
+            return new fileTxt(filePath);
+        }
         static void Main(string[] args)
         {
+            string firstArgExt = GetFileExtension(args[0]);
+            string secondArgExt = GetFileExtension(args[1]);
+            if (!SUPPORTED_FORMATS.Contains(firstArgExt) || !SUPPORTED_FORMATS.Contains(secondArgExt))
+            {
+                Console.WriteLine("Can`t convert such type of file :C");
+                return;
+            }
             if (args.Length != 2)
             {
                 Console.WriteLine("Must specify two files");
-                Console.ReadLine();
+                return;
             }
-            else { 
-                Data mydata = new Data();
+            else
+            {
+                Data myData = new Data();
 
-                string[] frmt = { "txt", "csv", "json", "xml" };
-                string[] arg_i = args[0].Split(".");
-                string[] arg_o = args[1].Split(".");
-                
-                if (frmt.Contains(arg_i[arg_i.Length - 1]) & frmt.Contains(arg_o[arg_o.Length - 1]))
+                IFileWrapper inFtype = new fileTxt();
+                IFileWrapper outFtype = new fileTxt();
+
+                inFtype = BuildFileWrapper(args[0]);
+                try
                 {
-                    abstractFile inFtype = new file_txt();
-                    abstractFile outFtype = new file_txt();
-
-                    //parse
-                    switch (arg_i[arg_i.Length - 1])
-                    {
-                        case "txt":
-                            inFtype = new file_txt(args[0]);
-                            break;
-                        case "csv":
-                            inFtype = new file_csv(args[0]);
-                            break;
-                        case "json":
-                            inFtype = new file_json(args[0]);
-                            break;
-                        case "xml":
-                            inFtype = new file_xml(args[0]);
-                            break;
-                        default:
-                            break;
-                    }
-                    try
-                    {
-                        mydata = inFtype.parser();
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Can`t parse {0}", args[0]);
-                    }
-                    
-
-                    //export
-                    switch (arg_o[arg_o.Length - 1])
-                    {
-                        case "txt":
-                            outFtype = new file_txt(args[1]);
-                            break;
-                        case "csv":
-                            outFtype = new file_csv(args[1]);
-                            break;
-                        case "json":
-                            outFtype = new file_json(args[1]);
-                            break;
-                        case "xml":
-                            outFtype = new file_xml(args[1]);
-                            break;
-                        default:
-                            break;
-                    }
-                    try
-                    {
-                        outFtype.exporter(mydata);
-                    }
-                    catch
-                    {
-                        if (arg_o[arg_o.Length - 1] == "xml")
-                            Console.WriteLine("Can`t export...\nMaybe file {0} has no root \nOR \n{1} has bad structure", args[1], args[0]);
-                        else
-                            Console.WriteLine("Can`t export...\nMaybe file {0} has bad structure", args[0]);
-                    }
-
-                    Console.WriteLine("Done!");
-                    Console.ReadLine();
+                    myData = inFtype.Parse();
                 }
-                else
+                catch
                 {
-                    Console.WriteLine("Can`t convert such type of file :C");
-                    Console.ReadLine();
+                    Console.WriteLine("Can`t parse {0}", args[0]);
                 }
+
+                outFtype = BuildFileWrapper(args[1]);
+                try
+                {
+                    outFtype.Export(myData);
+                }
+                catch
+                {
+                    Console.WriteLine("Can`t export...\nMaybe file {0} has bad structure", args[0]);
+                }
+
+                Console.WriteLine("Done!");
             }
         }
     }

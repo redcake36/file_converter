@@ -4,15 +4,15 @@ using System.Linq;
 
 namespace file_converter
 {
-    public class file_txt : abstractFile
+    public class fileTxt : IFileWrapper
     {
-        public string file_name { get; set; }
-        public file_txt() { file_name = ""; }
-        public file_txt(string s) { file_name = s; }
-        public Data parser()
+        public string filePath { get;}
+        public fileTxt() { filePath = ""; }
+        public fileTxt(string s) { filePath = s; }
+        public Data Parse()
         {
             Data d = new Data();
-            string[] lines = System.IO.File.ReadAllLines(file_name);
+            string[] lines = System.IO.File.ReadAllLines(filePath);
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
@@ -32,26 +32,26 @@ namespace file_converter
                 }
                 v.Add(a);
             }
-            d.fields = f.Distinct().ToList();
-            d.values = v;
+            d.FieldNames = f.Distinct().ToList();
+            d.Content = v;
             return (d);
         }
-        public void exporter(Data d)
+        public void Export(Data input)
         {
-            if (d.fields.Count == 0)
+            if (input.FieldNames.Count == 0)
             {
                 return;
             }
             else
             {
-                using (StreamWriter sw = new StreamWriter(this.file_name))
+                using (StreamWriter sw = new StreamWriter(this.filePath))
                 {
-                    for (int i = 0; i < d.values.Count; i++)
+                    for (int i = 0; i < input.Content.Count; i++)
                     {
                         sw.WriteLine("=== Object ===");
-                        for (int j = 0; j < d.fields.Count; j++)
+                        for (int j = 0; j < input.FieldNames.Count; j++)
                         {
-                            sw.WriteLine("{0}: {1}", d.fields[j], d.values[i][j]);
+                            sw.WriteLine("{0}: {1}", input.FieldNames[j], input.Content[i][j]);
                         }
                         sw.WriteLine("=== End of object ===");
                     }

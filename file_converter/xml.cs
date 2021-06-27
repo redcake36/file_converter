@@ -5,7 +5,7 @@ using System.Xml;
 namespace file_converter
 {
 
-    public class file_xml : abstractFile
+    public class fileXml : IFileWrapper
     {
         static string xmlTakeWords(string[] lines, int i, ref int j, string c)
         {
@@ -33,13 +33,13 @@ namespace file_converter
             }
             return s;
         }
-        public string file_name { get; set; }
-        public file_xml() { file_name = ""; }
-        public file_xml(string s) { file_name = s; }
-        public Data parser()
+        public string filePath { get;}
+        public fileXml() { filePath = ""; }
+        public fileXml(string s) { filePath = s; }
+        public Data Parse()
         {
             Data d = new Data();
-            string[] lines = System.IO.File.ReadAllLines(file_name);
+            string[] lines = System.IO.File.ReadAllLines(filePath);
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
@@ -62,29 +62,29 @@ namespace file_converter
 
             }
 
-            d.fields = f.Distinct().ToList();
-            d.values = v;
+            d.FieldNames = f.Distinct().ToList();
+            d.Content = v;
             return (d);
         }
-        public void exporter(Data d)
+        public void Export(Data input)
         {
             XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(this.file_name);
+            xDoc.Load(this.filePath);
             XmlElement xRoot = xDoc.DocumentElement;
 
 
-            for (int i = 0; i < d.values.Count; i++)
+            for (int i = 0; i < input.Content.Count; i++)
             {
                 XmlElement ObjectElem = xDoc.CreateElement("Object");
-                for (int j = 0; j < d.fields.Count; j++)
+                for (int j = 0; j < input.FieldNames.Count; j++)
                 {
                     XmlElement PropertyElem = xDoc.CreateElement("Property");
                     XmlAttribute typeAttr = xDoc.CreateAttribute("type");
                     XmlAttribute nameAttr = xDoc.CreateAttribute("name");
 
-                    XmlText PropertyText = xDoc.CreateTextNode(d.values[i][j]);
+                    XmlText PropertyText = xDoc.CreateTextNode(input.Content[i][j]);
                     XmlText typeText = xDoc.CreateTextNode("string");
-                    XmlText nameText = xDoc.CreateTextNode(d.fields[j]);
+                    XmlText nameText = xDoc.CreateTextNode(input.FieldNames[j]);
 
                     PropertyElem.AppendChild(PropertyText);
                     typeAttr.AppendChild(typeText);
@@ -97,7 +97,7 @@ namespace file_converter
                 xRoot.AppendChild(ObjectElem);
             }
 
-            xDoc.Save(file_name);
+            xDoc.Save(filePath);
         }
     }
 }

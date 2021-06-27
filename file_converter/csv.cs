@@ -4,18 +4,18 @@ using System.Collections.Generic;
 namespace file_converter
 {
 
-    public class file_csv : abstractFile
+    public class fileCsv : IFileWrapper
     {
-        public string file_name { get; set; }
-        public file_csv() { file_name = ""; }
-        public file_csv(string s) { file_name = s; }
-        public Data parser()
+        public string filePath { get;}
+        public fileCsv() { filePath = ""; }
+        public fileCsv(string s) { filePath = s; }
+        public Data Parse()
         {
             Data d = new Data();
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
-            string[] lines = System.IO.File.ReadAllLines(file_name);
+            string[] lines = System.IO.File.ReadAllLines(filePath);
             int i = 0;
             string word = "";
             while (i < lines[0].Length)
@@ -59,42 +59,42 @@ namespace file_converter
                 }
                 v.Add(a);
             }
-            d.fields = f;
-            d.values = v;
+            d.FieldNames = f;
+            d.Content = v;
             return (d);
         }
-        public void exporter(Data d)
+        public void Export(Data input)
         {
-            if (d.fields.Count == 0)
+            if (input.FieldNames.Count == 0)
             {
                 return;
             }
             else
             {
-                using (StreamWriter sw = new StreamWriter(this.file_name))
+                using (StreamWriter sw = new StreamWriter(this.filePath))
                 {
-                    for (int j = 0; j < d.fields.Count; j++)
+                    for (int j = 0; j < input.FieldNames.Count; j++)
                     {
-                        if (j == d.fields.Count - 1)
+                        if (j == input.FieldNames.Count - 1)
                         {
-                            sw.Write("{0}\n", d.fields[j]);
+                            sw.Write("{0}\n", input.FieldNames[j]);
                         }
                         else
                         {
-                            sw.Write("{0},", d.fields[j]);
+                            sw.Write("{0},", input.FieldNames[j]);
                         }
                     }
-                    for (int i = 0; i < d.values.Count; i++)
+                    for (int i = 0; i < input.Content.Count; i++)
                     {
-                        for (int j = 0; j < d.fields.Count; j++)
+                        for (int j = 0; j < input.FieldNames.Count; j++)
                         {
-                            if (j == d.fields.Count - 1)
+                            if (j == input.FieldNames.Count - 1)
                             {
-                                sw.Write("{0}\n", d.values[i][j]);
+                                sw.Write("{0}\n", input.Content[i][j]);
                             }
                             else
                             {
-                                sw.Write("{0},", d.values[i][j]);
+                                sw.Write("{0},", input.Content[i][j]);
                             }
                         }
                     }
