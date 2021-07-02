@@ -8,5 +8,16 @@ namespace file_converter
     {
         public List<string> FieldNames;
         public List<List<string>> Content;
+        public Data()
+        {
+            FieldNames = new List<string>();
+            Content = new List<List<string>>();
+        }
+
+        public Data(List<string> f, List<List<string>> c)
+        {
+            FieldNames = f;
+            Content = c;
+        }
     }
 }

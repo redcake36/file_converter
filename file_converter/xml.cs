@@ -5,8 +5,11 @@ using System.Xml.Linq;
 
 namespace file_converter
 {
-    public class fileXml : IFileWrapper
+    public class FileXml : IFileWrapper
     {
+        public string FilePath { get;}
+        public FileXml() { FilePath = ""; }
+        public FileXml(string s) { FilePath = s; }
         static string xmlTakeWords(string[] lines, int i, ref int j, string c)
         {
             string s = "";
@@ -33,13 +36,9 @@ namespace file_converter
             }
             return s;
         }
-        public string filePath { get;}
-        public fileXml() { filePath = ""; }
-        public fileXml(string s) { filePath = s; }
         public Data Parse()
         {
-            Data d = new Data();
-            string[] lines = System.IO.File.ReadAllLines(filePath);
+            string[] lines = System.IO.File.ReadAllLines(FilePath);
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
@@ -54,20 +53,18 @@ namespace file_converter
                         int j = 0;
                         f.Add(xmlTakeWords(lines, i, ref j, "\"\""));
                         a.Add(xmlTakeWords(lines, i, ref j, "><"));
-
                         i++;
                     }
                     v.Add(a);
                 }
-
             }
-
-            d.FieldNames = f.Distinct().ToList();
-            d.Content = v;
-            return (d);
+            return (new Data(f.Distinct().ToList(),v));
         }
         public void Export(Data input)
         {
+            if (input.FieldNames.Count == 0)
+                return;
+
             XDocument xDoc = new XDocument();
             XElement root = new XElement("List");
 
@@ -86,9 +83,8 @@ namespace file_converter
                 }
                 root.Add(ObjectElem);
             }
-
             xDoc.Add(root);
-            xDoc.Save(filePath);
+            xDoc.Save(FilePath);
         }
     }
 }

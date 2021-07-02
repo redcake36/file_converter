@@ -6,7 +6,7 @@ namespace file_converter
 {
     public interface IFileWrapper
     {
-        string filePath { get; }
+        string FilePath { get; }
         Data Parse();
         void Export(Data input);
     }

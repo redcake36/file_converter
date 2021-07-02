@@ -4,15 +4,14 @@ using System.Linq;
 
 namespace file_converter
 {
-    public class fileTxt : IFileWrapper
+    public class FileTxt : IFileWrapper
     {
-        public string filePath { get;}
-        public fileTxt() { filePath = ""; }
-        public fileTxt(string s) { filePath = s; }
+        public string FilePath { get; }
+        public FileTxt() { FilePath = ""; }
+        public FileTxt(string s) { FilePath = s; }
         public Data Parse()
         {
-            Data d = new Data();
-            string[] lines = System.IO.File.ReadAllLines(filePath);
+            string[] lines = System.IO.File.ReadAllLines(FilePath);
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
@@ -32,29 +31,23 @@ namespace file_converter
                 }
                 v.Add(a);
             }
-            d.FieldNames = f.Distinct().ToList();
-            d.Content = v;
-            return (d);
+            return (new Data(f.Distinct().ToList(), v));
         }
         public void Export(Data input)
         {
             if (input.FieldNames.Count == 0)
-            {
                 return;
-            }
-            else
+
+            using (StreamWriter sw = new StreamWriter(this.FilePath))
             {
-                using (StreamWriter sw = new StreamWriter(this.filePath))
+                for (int i = 0; i < input.Content.Count; i++)
                 {
-                    for (int i = 0; i < input.Content.Count; i++)
+                    sw.WriteLine("=== Object ===");
+                    for (int j = 0; j < input.FieldNames.Count; j++)
                     {
-                        sw.WriteLine("=== Object ===");
-                        for (int j = 0; j < input.FieldNames.Count; j++)
-                        {
-                            sw.WriteLine("{0}: {1}", input.FieldNames[j], input.Content[i][j]);
-                        }
-                        sw.WriteLine("=== End of object ===");
+                        sw.WriteLine("{0}: {1}", input.FieldNames[j], input.Content[i][j]);
                     }
+                    sw.WriteLine("=== End of object ===");
                 }
             }
         }
