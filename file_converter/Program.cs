@@ -9,20 +9,8 @@ namespace file_converter
 
         static void Main(string[] args)
         {
-            if (args.Length != 2)
-            {
-                Console.WriteLine("Must specify two files");
+            if (!IsArgsCorr(args))
                 return;
-            }
-
-            string firstArgExt = GetFileExtension(args[0]);
-            string secondArgExt = GetFileExtension(args[1]);
-
-            if (!SUPPORTED_FORMATS.Contains(firstArgExt) || !SUPPORTED_FORMATS.Contains(secondArgExt))
-            {
-                Console.WriteLine("Can`t convert such type of file :C");
-                return;
-            }
 
             IFileWrapper inFtype = BuildFileWrapper(args[0]);
             IFileWrapper outFtype = BuildFileWrapper(args[1]);
@@ -30,19 +18,31 @@ namespace file_converter
             Data myData = new Data();
             try {
                 myData = inFtype.Parse();
-            }
-            catch {
-                Console.Error.WriteLine("Something went wrong during file conversion");
-            }
-
-            try {
                 outFtype.Export(myData);
             }
             catch {
-                Console.Error.WriteLine("Something went wrong during file exporting");
+                Console.Error.WriteLine("Something went wrong ...");
             }
 
             Console.WriteLine("Done!");
+        }
+        private static bool IsArgsCorr(string[] args)
+        {
+            if (args.Length != 2)
+            {
+                Console.WriteLine("Must specify two files");
+                return false;
+            }
+
+            string firstArgExt = GetFileExtension(args[0]);
+            string secondArgExt = GetFileExtension(args[1]);
+
+            if (!SUPPORTED_FORMATS.Contains(firstArgExt) || !SUPPORTED_FORMATS.Contains(secondArgExt))
+            {
+                Console.WriteLine("Can`t convert such type of file");
+                return false;
+            }
+            return true;
         }
         private static string GetFileExtension(string filePath)
         {
