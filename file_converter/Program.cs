@@ -2,95 +2,69 @@
 using System.Linq;
 
 namespace file_converter
-{   
+{
     class Program
     {
+        private static string[] SUPPORTED_FORMATS = { "txt", "csv", "json", "xml" };
+
         static void Main(string[] args)
+        {
+            if (!IsArgsCorr(args))
+                return;
+
+            IFileWrapper inFtype = BuildFileWrapper(args[0]);
+            IFileWrapper outFtype = BuildFileWrapper(args[1]);
+
+            Data myData = new Data();
+            try {
+                myData = inFtype.Parse();
+                outFtype.Export(myData);
+            }
+            catch {
+                Console.Error.WriteLine("Something went wrong ...");
+            }
+
+            Console.WriteLine("Done!");
+        }
+        private static bool IsArgsCorr(string[] args)
         {
             if (args.Length != 2)
             {
                 Console.WriteLine("Must specify two files");
-                Console.ReadLine();
+                return false;
             }
-            else { 
-                Data mydata = new Data();
 
-                string[] frmt = { "txt", "csv", "json", "xml" };
-                string[] arg_i = args[0].Split(".");
-                string[] arg_o = args[1].Split(".");
-                
-                if (frmt.Contains(arg_i[arg_i.Length - 1]) & frmt.Contains(arg_o[arg_o.Length - 1]))
-                {
-                    abstractFile inFtype = new file_txt();
-                    abstractFile outFtype = new file_txt();
+            string firstArgExt = GetFileExtension(args[0]);
+            string secondArgExt = GetFileExtension(args[1]);
 
-                    //parse
-                    switch (arg_i[arg_i.Length - 1])
-                    {
-                        case "txt":
-                            inFtype = new file_txt(args[0]);
-                            break;
-                        case "csv":
-                            inFtype = new file_csv(args[0]);
-                            break;
-                        case "json":
-                            inFtype = new file_json(args[0]);
-                            break;
-                        case "xml":
-                            inFtype = new file_xml(args[0]);
-                            break;
-                        default:
-                            break;
-                    }
-                    try
-                    {
-                        mydata = inFtype.parser();
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Can`t parse {0}", args[0]);
-                    }
-                    
+            if (!SUPPORTED_FORMATS.Contains(firstArgExt) || !SUPPORTED_FORMATS.Contains(secondArgExt))
+            {
+                Console.WriteLine("Can`t convert such type of file");
+                return false;
+            }
+            return true;
+        }
+        private static string GetFileExtension(string filePath)
+        {
+            string[] s = filePath.Split(".");
+            return s[s.Length - 1];
+        }
+        private static IFileWrapper BuildFileWrapper(string filePath)
+        {
+            string ext = GetFileExtension(filePath);
 
-                    //export
-                    switch (arg_o[arg_o.Length - 1])
-                    {
-                        case "txt":
-                            outFtype = new file_txt(args[1]);
-                            break;
-                        case "csv":
-                            outFtype = new file_csv(args[1]);
-                            break;
-                        case "json":
-                            outFtype = new file_json(args[1]);
-                            break;
-                        case "xml":
-                            outFtype = new file_xml(args[1]);
-                            break;
-                        default:
-                            break;
-                    }
-                    try
-                    {
-                        outFtype.exporter(mydata);
-                    }
-                    catch
-                    {
-                        if (arg_o[arg_o.Length - 1] == "xml")
-                            Console.WriteLine("Can`t export...\nMaybe file {0} has no root \nOR \n{1} has bad structure", args[1], args[0]);
-                        else
-                            Console.WriteLine("Can`t export...\nMaybe file {0} has bad structure", args[0]);
-                    }
-
-                    Console.WriteLine("Done!");
-                    Console.ReadLine();
-                }
-                else
-                {
-                    Console.WriteLine("Can`t convert such type of file :C");
-                    Console.ReadLine();
-                }
+            switch (ext)
+            {
+                case "csv":
+                    return new FileCsv(filePath);
+                case "json":
+                    return new FileJson(filePath);
+                case "xml":
+                    return new FileXml(filePath);
+                default:
+                    return new FileTxt(filePath);
             }
         }
+
     }
 }

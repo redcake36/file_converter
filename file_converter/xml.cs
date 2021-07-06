@@ -1,12 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace file_converter
 {
-
-    public class file_xml : abstractFile
+    public class FileXml : IFileWrapper
     {
+        public string FilePath { get;}
+        public FileXml() { FilePath = ""; }
+        public FileXml(string s) { FilePath = s; }
         static string xmlTakeWords(string[] lines, int i, ref int j, string c)
         {
             string s = "";
@@ -33,13 +36,9 @@ namespace file_converter
             }
             return s;
         }
-        public string file_name { get; set; }
-        public file_xml() { file_name = ""; }
-        public file_xml(string s) { file_name = s; }
-        public Data parser()
+        public Data Parse()
         {
-            Data d = new Data();
-            string[] lines = System.IO.File.ReadAllLines(file_name);
+            string[] lines = System.IO.File.ReadAllLines(FilePath);
             List<string> f = new List<string>();
             List<List<string>> v = new List<List<string>>();
 
@@ -54,50 +53,38 @@ namespace file_converter
                         int j = 0;
                         f.Add(xmlTakeWords(lines, i, ref j, "\"\""));
                         a.Add(xmlTakeWords(lines, i, ref j, "><"));
-
                         i++;
                     }
                     v.Add(a);
                 }
-
             }
-
-            d.fields = f.Distinct().ToList();
-            d.values = v;
-            return (d);
+            return (new Data(f.Distinct().ToList(),v));
         }
-        public void exporter(Data d)
+        public void Export(Data input)
         {
-            XmlDocument xDoc = new XmlDocument();
-            xDoc.Load(this.file_name);
-            XmlElement xRoot = xDoc.DocumentElement;
+            if (input.FieldNames.Count == 0)
+                return;
 
+            XDocument xDoc = new XDocument();
+            XElement root = new XElement("List");
 
-            for (int i = 0; i < d.values.Count; i++)
+            for (int i = 0; i < input.Content.Count; i++)
             {
-                XmlElement ObjectElem = xDoc.CreateElement("Object");
-                for (int j = 0; j < d.fields.Count; j++)
+                XElement ObjectElem = new XElement("Object");
+                for (int j = 0; j < input.FieldNames.Count; j++)
                 {
-                    XmlElement PropertyElem = xDoc.CreateElement("Property");
-                    XmlAttribute typeAttr = xDoc.CreateAttribute("type");
-                    XmlAttribute nameAttr = xDoc.CreateAttribute("name");
+                    XElement PropertyElem = new XElement("Property", input.Content[i][j]);
+                    XAttribute typeAttr = new XAttribute("type","string");
+                    XAttribute nameAttr = new XAttribute("name", input.FieldNames[j]);
 
-                    XmlText PropertyText = xDoc.CreateTextNode(d.values[i][j]);
-                    XmlText typeText = xDoc.CreateTextNode("string");
-                    XmlText nameText = xDoc.CreateTextNode(d.fields[j]);
-
-                    PropertyElem.AppendChild(PropertyText);
-                    typeAttr.AppendChild(typeText);
-                    nameAttr.AppendChild(nameText);
-
-                    PropertyElem.Attributes.Append(typeAttr);
-                    PropertyElem.Attributes.Append(nameAttr);
-                    ObjectElem.AppendChild(PropertyElem);
+                    PropertyElem.Add(typeAttr);
+                    PropertyElem.Add(nameAttr);
+                    ObjectElem.Add(PropertyElem);
                 }
-                xRoot.AppendChild(ObjectElem);
+                root.Add(ObjectElem);
             }
-
-            xDoc.Save(file_name);
+            xDoc.Add(root);
+            xDoc.Save(FilePath);
         }
     }
 }
